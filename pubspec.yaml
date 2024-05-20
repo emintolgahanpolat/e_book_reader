@@ -1,7 +1,7 @@
 name: e_book_reader
 description: "A new Flutter package project."
 version: 0.0.1
-homepage: null
+homepage: https://github.com/emintolgahanpolat/e_book_reader
 
 environment:
   sdk: '>=3.3.4 <4.0.0'
