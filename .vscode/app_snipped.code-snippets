@@ -1,0 +1,42 @@
+{
+  "stateful": {
+    "prefix": "sstatefullPage",
+    "body": [
+      "import 'package:flutter/material.dart';",
+      "import 'package:route_map/route_map.dart';",
+      "@RouteMap()",
+      "class $1Page extends StatefulWidget {",
+      "\t@override",
+      " \t_$1State createState() => _$1State();",
+      "}",
+      "class _$1State extends BaseState<$1ViewModel,$1Page> {",
+      "\t@override",
+      "\tWidget build(BuildContext context) {",
+      "return Scaffold(",
+      "\tappBar: AppBar(",
+      "\t\ttitle: const Text('$1Page'),",
+      "\t),",
+      "\t);",
+      "\t}",
+      "} "
+    ]
+  },
+  "viewModel": {
+    "prefix": "vviewModel",
+    "body": [
+      "import 'package:injectable/injectable.dart';",
+      "@injectable",
+      "class $1ViewModel extends BaseViewModel {}"
+    ]
+  },
+  "getSet": {
+    "prefix": "getset",
+    "body": [
+      "$2 _$1;",
+      "$2 get $1 => _$1;",
+      "void set${1/(.*)/${1:/pascalcase}/}($2 value){",
+      "_$1 = value;",
+      "}"
+    ]
+  }
+}

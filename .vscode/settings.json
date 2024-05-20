@@ -1,0 +1,29 @@
+{
+  "security.workspace.trust.enabled": false,
+  "[dart]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    },
+    "editor.rulers": [80],
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.selectionHighlight": false,
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "editor.suggestSelection": "first",
+    "editor.tabCompletion": "onlySnippets",
+    "editor.wordBasedSuggestions": "off"
+  },
+  "dart.previewFlutterUiGuides": true,
+  "dart.warnWhenEditingFilesOutsideWorkspace": false,
+  "dart.renameFilesWithClasses": "prompt",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.inlineSuggest.enabled": true,
+  "editor.formatOnSave": true,
+  "editor.stickyScroll.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.dart": "${capture}_impl.dart, ${capture}_vm.dart, mock_${capture}.dart, ${capture}.g.dart, ${capture}.config.dart,${capture}.routes.dart"
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false
+}
