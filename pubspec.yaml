@@ -1,5 +1,5 @@
 name: e_book_reader
-description: "A new Flutter package project."
+description: "A powerful and customizable E-Book Reader package for Flutter applications. Enhance your app with adjustable text styles, light/dark modes, horizontal and vertical reading layouts, and seamless scroll position tracking. Perfect for integrating a smooth and user-friendly reading experience."
 version: 0.0.1
 homepage: https://github.com/emintolgahanpolat/e_book_reader
 
