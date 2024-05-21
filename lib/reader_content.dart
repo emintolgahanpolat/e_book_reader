@@ -11,15 +11,8 @@ class ReaderContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-        stream: controller.loadingStream,
-        builder: (context, snapshot) {
-          if (snapshot.data == false) {
-            return WebViewWidget(
-              controller: controller.webViewController,
-            );
-          }
-          return loadingWidget ?? const SizedBox();
-        });
+    return WebViewWidget(
+      controller: controller.webViewController,
+    );
   }
 }

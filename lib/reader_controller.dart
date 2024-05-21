@@ -7,6 +7,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 typedef ReaderPositionListener = void Function();
+typedef LoadingListener = Function(bool isLoading);
 
 class ReaderController {
   ReaderController() {
@@ -113,11 +114,8 @@ initialize();""");
 
   bool _loading = false;
   bool get loading => _loading;
-  final StreamController<bool> _streamController = StreamController();
-  Stream<bool> get loadingStream => _streamController.stream;
   void setLoading(bool value) {
     _loading = value;
-    _streamController.add(value);
   }
 
   double _scrollHeight = 0;
