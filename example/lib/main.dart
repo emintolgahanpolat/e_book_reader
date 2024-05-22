@@ -1,16 +1,23 @@
+import 'dart:convert';
+
+import 'package:e_book_reader/config.dart';
 import 'package:e_book_reader/e_book_reader.dart';
 import 'package:e_book_reader/reader_controller.dart';
 import 'package:e_book_reader/reader_pull_to_refresh.dart';
 import 'package:example/const.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var pref = await SharedPreferences.getInstance();
+  runApp(MyApp(pref: pref));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final SharedPreferences pref;
+  const MyApp({super.key, required this.pref});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: HomePage(pref: pref),
     );
   }
 }
@@ -28,20 +35,23 @@ class MyApp extends StatelessWidget {
 enum ScreenMode { full, more, settings }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final SharedPreferences pref;
+  const HomePage({super.key, required this.pref});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final ReaderController _readerController = ReaderController();
+  late ReaderController _readerController;
 
   ScreenMode _screenMode = ScreenMode.full;
   Color color = Colors.white;
 
   @override
   void initState() {
+    _readerController =
+        ReaderController(pref: SharedConfigPrefrenceImpl(widget.pref));
     _readerController.load(longText);
 
     _readerController.addScrollListener(() {
@@ -156,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                             )),
                         IconButton(
                             onPressed: () {
-                              if (_readerController.backgroundColor ==
+                              if (_readerController.config.backgroundColor ==
                                   Colors.black) {
                                 _readerController.setColor(
                                     Colors.white, Colors.black);
@@ -168,7 +178,7 @@ class _HomePageState extends State<HomePage> {
                             icon: Column(
                               children: [
                                 const Icon(Icons.light),
-                                Text(_readerController.backgroundColor ==
+                                Text(_readerController.config.backgroundColor ==
                                         Colors.black
                                     ? "Light"
                                     : "Dark"),
@@ -250,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                     onSelectionChanged: (p) {
                       _readerController.setTextAlign(p.first);
                     },
-                    selected: {_readerController.textAlign}),
+                    selected: {_readerController.config.textAlign}),
               ),
               const SizedBox(
                 height: 8,
@@ -273,7 +283,7 @@ class _HomePageState extends State<HomePage> {
                     onSelectionChanged: (p) {
                       _readerController.setFontStyle(p.first);
                     },
-                    selected: {_readerController.fontStyle}),
+                    selected: {_readerController.config.fontStyle}),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -291,13 +301,14 @@ class _HomePageState extends State<HomePage> {
                     IconButton(
                         onPressed: () {
                           _readerController.setAxis(
-                              _readerController.axis == Axis.horizontal
+                              _readerController.config.axis == Axis.horizontal
                                   ? Axis.vertical
                                   : Axis.horizontal);
                         },
-                        icon: Icon(_readerController.axis == Axis.vertical
-                            ? Icons.vertical_distribute
-                            : Icons.horizontal_distribute)),
+                        icon: Icon(
+                            _readerController.config.axis == Axis.vertical
+                                ? Icons.vertical_distribute
+                                : Icons.horizontal_distribute)),
                     PopupMenuButton<int>(
                         onSelected: (v) {
                           _readerController.setFontWeight(FontWeight.values
@@ -311,26 +322,26 @@ class _HomePageState extends State<HomePage> {
                             .toList()),
                     IconButton(
                         onPressed: () {
-                          _readerController
-                              .setFontSize(_readerController.fontSize - 1);
+                          _readerController.setFontSize(
+                              _readerController.config.fontSize - 1);
                         },
                         icon: const Icon(Icons.text_decrease)),
                     IconButton(
                         onPressed: () {
-                          _readerController
-                              .setFontSize(_readerController.fontSize + 1);
+                          _readerController.setFontSize(
+                              _readerController.config.fontSize + 1);
                         },
                         icon: const Icon(Icons.text_increase_rounded)),
                     IconButton(
                         onPressed: () {
                           _readerController.setLineHeight(
-                              _readerController.lineHeight - 0.1);
+                              _readerController.config.lineHeight - 0.1);
                         },
                         icon: const Icon(Icons.text_rotate_vertical_rounded)),
                     IconButton(
                         onPressed: () {
                           _readerController.setLineHeight(
-                              _readerController.lineHeight + 0.1);
+                              _readerController.config.lineHeight + 0.1);
                         },
                         icon: const Icon(Icons.text_rotate_up_outlined)),
                   ],
@@ -341,8 +352,28 @@ class _HomePageState extends State<HomePage> {
         );
     }
   }
+}
 
-  void setColor(Color backgroundColor, Color foregroundColor) {
-    _readerController.setColor(Colors.black, Colors.white);
+class SharedConfigPrefrenceImpl extends SharedConfigPreference {
+  final SharedPreferences _pref;
+  SharedConfigPrefrenceImpl(this._pref);
+  @override
+  ReaderConfig? load() {
+    ReaderConfig? config;
+    String? data = _pref.getString("ReaderConfig3");
+    if (data == null) {
+      return null;
+    }
+    try {
+      config = ReaderConfig.fromJson(json.decode(data));
+    } catch (e) {
+      print(e);
+    }
+    return config;
+  }
+
+  @override
+  void save(ReaderConfig config) {
+    _pref.setString("ReaderConfig3", json.encode(config.toJson()));
   }
 }

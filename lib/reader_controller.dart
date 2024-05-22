@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:e_book_reader/config.dart';
+import 'package:e_book_reader/config_preference.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -10,7 +12,19 @@ typedef ReaderPositionListener = void Function();
 typedef LoadingListener = Function(bool isLoading);
 
 class ReaderController {
-  ReaderController() {
+  late WebViewController _webViewController;
+  WebViewController get webViewController => _webViewController;
+  SharedConfigPreference? _sharedConfigPrefrence;
+  late ReaderConfig _config;
+  ReaderConfig get config => _config;
+  void setConfig(ReaderConfig value) {
+    _config = value;
+    _sharedConfigPrefrence?.save(_config);
+  }
+
+  ReaderController({SharedConfigPreference? pref}) {
+    _sharedConfigPrefrence = pref;
+    _config = pref?.load() ?? ReaderConfig();
     final PlatformWebViewControllerCreationParams params;
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
       params = WebKitWebViewControllerCreationParams(
@@ -35,7 +49,7 @@ class ReaderController {
         }
         _scrollPosition = mData.first.toInt();
         _contentHeight = mData[1];
-        _scrollHeight = mData[2] + (padding.vertical);
+        _scrollHeight = mData[2] + (_config.padding.vertical);
         for (var element in _positionListener) {
           element.call();
         }
@@ -43,7 +57,7 @@ class ReaderController {
       ..setNavigationDelegate(NavigationDelegate(onPageStarted: (url) {
         setLoading(true);
       }, onPageFinished: (url) {
-        if (axis == Axis.horizontal) {
+        if (_config.axis == Axis.horizontal) {
           _webViewController.runJavaScript("""
 function initialize(){
 				    var d = document.getElementById('content');
@@ -68,30 +82,32 @@ initialize();""");
           "* { padding: 0px !important; letter-spacing: normal !important; max-width: none !important; }"
         ]);
         _injectCss(["::selection { background: #ffb7b7; }"]);
-        _injectCss(["* { font-family: $fontFamily!important; }"]);
-        _injectCss(["* { font-size: $_fontSize !important; }"]);
-        _injectCss(["* { font-weight: ${_fontWeight.value} !important; }"]);
-        _injectCss(["* { line-height:  $_lineHeight  !important; }"]);
+        _injectCss(["* { font-family: ${config.fontFamily}!important; }"]);
+        _injectCss(["* { font-size: ${config.fontSize} !important; }"]);
+        _injectCss(
+            ["* { font-weight: ${config.fontWeight.value} !important; }"]);
+        _injectCss(["* { line-height:  ${config.lineHeight}  !important; }"]);
         _injectCss([
-          "* { font-style: ${_fontStyle.name.split(".").last} !important; }"
+          "* { font-style: ${config.fontStyle.name.split(".").last} !important; }"
         ]);
         _injectCss([
-          "* { text-align: ${_textAlign.name.split(".").last} !important; }"
+          "* { text-align: ${config.textAlign.name.split(".").last} !important; }"
         ]);
         _injectCss([
-          "body { margin: ${_padding.top}px ${_padding.right}px ${_padding.bottom}px ${_padding.left}px !important; }"
+          "body { margin: ${config.padding.top}px ${config.padding.right}px ${config.padding.bottom}px ${config.padding.left}px !important; }"
         ]);
 
         _injectCss([
-          "body { background: rgb(${_backgroundColor.red} ${_backgroundColor.green} ${_backgroundColor.blue}) !important; }"
+          "body { background: rgb(${config.backgroundColor.red} ${config.backgroundColor.green} ${config.backgroundColor.blue}) !important; }"
         ]);
         _injectCss([
-          "* { color: rgb(${_foregroundColor.red} ${_foregroundColor.green} ${_foregroundColor.blue}) !important; }"
+          "* { color: rgb(${config.foregroundColor.red} ${config.foregroundColor.green} ${config.foregroundColor.blue}) !important; }"
         ]);
 
         _injectCss([
           "img { display: block !important; width: 100% !important; height: auto !important; }"
         ]);
+        setConfig(config);
         setLoading(false);
       }))
       ..setBackgroundColor(Colors.transparent)
@@ -116,6 +132,12 @@ initialize();""");
   bool get loading => _loading;
   void setLoading(bool value) {
     _loading = value;
+    _loadingListener?.call(value);
+  }
+
+  LoadingListener? _loadingListener;
+  void setLoadingListener(LoadingListener listener) {
+    _loadingListener = listener;
   }
 
   double _scrollHeight = 0;
@@ -141,76 +163,53 @@ initialize();""");
 
   double get rate =>
       (scrollPosition / (scrollHeight - contentHeight)).clamp(0, 1);
-  late WebViewController _webViewController;
-  WebViewController get webViewController => _webViewController;
 
-  FontWeight _fontWeight = FontWeight.normal;
-  FontWeight get fontWeight => _fontWeight;
   void setFontWeight(FontWeight weight) {
-    _fontWeight = weight;
+    _config.fontWeight = weight;
     _reload();
   }
 
-  TextAlign _textAlign = TextAlign.left;
-  TextAlign get textAlign => _textAlign;
   void setTextAlign(TextAlign align) {
-    _textAlign = align;
+    _config.textAlign = align;
     _reload();
   }
 
-  int _fontSize = 16;
-  int get fontSize => _fontSize;
   void setFontSize(int size) {
-    _fontSize = size;
+    _config.fontSize = size;
     _reload();
   }
 
-  FontStyle _fontStyle = FontStyle.normal;
-  FontStyle get fontStyle => _fontStyle;
   void setFontStyle(FontStyle value) {
-    _fontStyle = value;
+    _config.fontStyle = value;
 
     _reload();
   }
 
   List<String> get fonts =>
       ["default", "cursive", "monospace", "serif", "sans-serif"];
-  String _fontFamily = "default";
-  String get fontFamily => _fontFamily;
+
   void setFontFamily(String value) {
-    _fontFamily = value;
+    _config.fontFamily = value;
     _reload();
   }
 
-  double _lineHeight = 1.6;
-  double get lineHeight => _lineHeight;
   void setLineHeight(double size) {
-    _lineHeight = size;
+    _config.lineHeight = size;
     _reload();
   }
 
-  EdgeInsets _padding = const EdgeInsets.all(8);
-  EdgeInsets get padding => _padding;
   void setPadding(EdgeInsets padding) {
-    _padding = padding;
+    _config.padding = padding;
     _reload();
   }
 
-  Axis _axis = Axis.vertical;
-  Axis get axis => _axis;
   void setAxis(Axis axis) {
-    _axis = axis;
-
     _reload();
   }
 
-  Color _foregroundColor = Colors.black;
-  Color get foregroundColor => _foregroundColor;
-  Color _backgroundColor = Colors.white;
-  Color get backgroundColor => _backgroundColor;
   void setColor(Color backgroundColor, Color foregroundColor) {
-    _backgroundColor = backgroundColor;
-    _foregroundColor = foregroundColor;
+    _config.backgroundColor = backgroundColor;
+    _config.foregroundColor = foregroundColor;
     _reload();
   }
 
