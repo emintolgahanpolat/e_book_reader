@@ -56,7 +56,6 @@ class ReaderController {
       })
       ..addJavaScriptChannel("ScrollPositionX", onMessageReceived: (value) {
         List<double> mData = [1, 1, 1];
-        print(value.message);
         try {
           mData = (jsonDecode(value.message) as List)
               .map<String>((item) => item.toString())
