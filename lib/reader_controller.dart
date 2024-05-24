@@ -38,7 +38,7 @@ class ReaderController {
     _webViewController = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel("ScrollPosition", onMessageReceived: (value) {
-        List<double> mData = [1, 1];
+        List<double> mData = [1, 1, 1];
         try {
           mData = (jsonDecode(value.message) as List)
               .map<String>((item) => item.toString())
@@ -50,6 +50,24 @@ class ReaderController {
         _scrollPosition = mData.first.toInt();
         _contentHeight = mData[1];
         _scrollHeight = mData[2] + (_config.padding.vertical);
+        for (var element in _positionListener) {
+          element.call();
+        }
+      })
+      ..addJavaScriptChannel("ScrollPositionX", onMessageReceived: (value) {
+        List<double> mData = [1, 1, 1];
+        print(value.message);
+        try {
+          mData = (jsonDecode(value.message) as List)
+              .map<String>((item) => item.toString())
+              .map((e) => double.tryParse(e) ?? 0)
+              .toList();
+        } catch (e) {
+          // print(e);
+        }
+        _scrollPosition = mData.first.toInt();
+        _contentHeight = mData[1];
+        _scrollHeight = mData[2] + (_config.padding.horizontal);
         for (var element in _positionListener) {
           element.call();
         }
@@ -71,8 +89,6 @@ function initialize(){
             d.style.height = ourH + 'px';
             d.style.width = newW + 'px';
             d.style.margin = '0';
-            d.style.overflowX = 'scroll';
-            d.style.overflowY = 'hidden';
             d.style.webkitColumnCount = pageCount;
             d.style.columnGap = '10px';
 				  }
@@ -204,6 +220,7 @@ initialize();""");
   }
 
   void setAxis(Axis axis) {
+    _config.axis = axis;
     _reload();
   }
 
@@ -215,16 +232,22 @@ initialize();""");
 
   Future<void> scrollToRate(double rate) {
     var y = rate * (_scrollHeight - contentHeight);
-    return _webViewController.scrollTo(0, y.toInt());
+    return scrollToPosition(y);
   }
 
   Future<void> scrollToPosition(double position) {
+    if (Axis.horizontal == config.axis) {
+      return _webViewController.scrollTo(
+        position.toInt(),
+        0,
+      );
+    }
     return _webViewController.scrollTo(0, position.toInt());
   }
 
   Future<void> scrollToPage(int page) {
     var y = page * contentHeight;
-    return _webViewController.scrollTo(0, y.toInt());
+    return scrollToPosition(y);
   }
 
   final debouncer = Debouncer(milliseconds: 100);
@@ -251,6 +274,7 @@ initialize();""");
             var scrollPosition = window.scrollY;
             var scrollHeight = document.getElementById('content').scrollHeight;
             ScrollPosition.postMessage([scrollPosition,window.innerHeight,scrollHeight]);
+            ScrollPositionX.postMessage([window.scrollX,window.innerWidth,document.getElementById('content').scrollWidth]);
           }
 
           window.addEventListener('scroll', updatePageInfo);

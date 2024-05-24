@@ -55,8 +55,6 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
     setState(() {
       _isRefreshingTop = true;
     });
-
-    _readerController.scrollToPosition(-50);
     await widget.onRefreshTop?.call();
     setState(() {
       _isRefreshingTop = false;
@@ -81,7 +79,9 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
         widget.child,
         if (_isRefreshingTop)
           Align(
-            alignment: Alignment.topCenter,
+            alignment: _readerController.config.axis == Axis.horizontal
+                ? Alignment.centerLeft
+                : Alignment.topCenter,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: widget.loading ?? const CircularProgressIndicator(),
@@ -89,7 +89,9 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
           ),
         if (_isRefreshingBottom)
           Align(
-            alignment: Alignment.bottomCenter,
+            alignment: _readerController.config.axis == Axis.horizontal
+                ? Alignment.centerRight
+                : Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: widget.loading ?? const CircularProgressIndicator(),
