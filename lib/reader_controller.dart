@@ -38,6 +38,10 @@ class ReaderController {
     _webViewController = WebViewController.fromPlatformCreationParams(params)
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel("ScrollPosition", onMessageReceived: (value) {
+        if (Axis.horizontal == config.axis) {
+          return;
+        }
+
         List<double> mData = [1, 1, 1];
         try {
           mData = (jsonDecode(value.message) as List)
@@ -55,6 +59,9 @@ class ReaderController {
         }
       })
       ..addJavaScriptChannel("ScrollPositionX", onMessageReceived: (value) {
+        if (Axis.vertical == config.axis) {
+          return;
+        }
         List<double> mData = [1, 1, 1];
         try {
           mData = (jsonDecode(value.message) as List)
@@ -264,11 +271,12 @@ initialize();""");
       </head>
    
       <body>
-        <div id="content" >
+        <div id="content" style="min-height: 100%;" >
         $_text
         </div>
 
          <script>
+         document.getElementById('content').height = window.innerWidth
           function updatePageInfo(){
             var scrollPosition = window.scrollY;
             var scrollHeight = document.getElementById('content').scrollHeight;
