@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:e_book_reader/config.dart';
 import 'package:e_book_reader/e_book_reader.dart';
-import 'package:e_book_reader/reader_controller.dart';
-import 'package:e_book_reader/reader_pull_to_refresh.dart';
+import 'package:example/const.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,7 +50,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     _readerController =
         ReaderController(pref: SharedConfigPrefrenceImpl(widget.pref));
-    _readerController.load("d");
+    _readerController.load(longText);
 
     _readerController.addScrollListener(() {
       setState(() {});
@@ -85,12 +83,10 @@ class _HomePageState extends State<HomePage> {
               ReaderPullToRefresh(
                 onRefreshTop: () async {
                   await Future.delayed(const Duration(seconds: 2));
-                  _readerController.load("s");
                   return;
                 },
                 onRefreshBottom: () async {
                   await Future.delayed(const Duration(seconds: 2));
-                  _readerController.load("${Random().nextInt(100)}");
 
                   return;
                 },
@@ -147,10 +143,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                     if (_readerController.totalPage > 0)
                       Slider(
-                        divisions: _readerController.totalPage,
+                        divisions: _readerController.totalPage - 1,
                         label: _readerController.currentPage.toString(),
-                        value: _readerController.currentPage.toDouble(),
-                        min: 0,
+                        value: _readerController.currentPage.toDouble().clamp(
+                            0, _readerController.totalPage.toDouble() - 1),
+                        min: 1,
                         max: _readerController.totalPage.toDouble(),
                         onChanged: (value) {
                           _readerController.scrollToPage(value.toInt());

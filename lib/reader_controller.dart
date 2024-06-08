@@ -51,9 +51,10 @@ class ReaderController {
         } catch (e) {
           // print(e);
         }
-        _scrollPosition = mData.first.toInt();
+
+        _scrollPosition = mData[0].toInt();
         _contentHeight = mData[1];
-        _scrollHeight = mData[2] + (_config.padding.vertical);
+        _scrollHeight = mData[2];
         for (var element in _positionListener) {
           element.call();
         }
@@ -73,7 +74,7 @@ class ReaderController {
         }
         _scrollPosition = mData.first.toInt();
         _contentHeight = mData[1];
-        _scrollHeight = mData[2] + (_config.padding.horizontal);
+        _scrollHeight = mData[2];
         for (var element in _positionListener) {
           element.call();
         }
@@ -171,16 +172,16 @@ initialize();""");
 
   int get totalPage {
     if (contentHeight == 0) {
-      return 0;
+      return 1;
     }
-    return ((scrollHeight - contentHeight) / contentHeight).ceil();
+    return ((scrollHeight) / contentHeight).ceil();
   }
 
   int get currentPage {
-    if (contentHeight == 0) {
-      return 0;
+    if (scrollPosition <= 0) {
+      return 1;
     }
-    return (scrollPosition / contentHeight).ceil();
+    return (scrollPosition ~/ contentHeight) + 1;
   }
 
   double get rate =>
@@ -278,8 +279,11 @@ initialize();""");
          <script>
          document.getElementById('content').height = window.innerWidth
           function updatePageInfo(){
+         
             var scrollPosition = window.scrollY;
+            document.getElementById('content').style.height = Math.ceil(document.getElementById('content').scrollHeight / window.innerHeight) * window.innerHeight + 'px';
             var scrollHeight = document.getElementById('content').scrollHeight;
+
             ScrollPosition.postMessage([scrollPosition,window.innerHeight,scrollHeight]);
             ScrollPositionX.postMessage([window.scrollX,window.innerWidth,document.getElementById('content').scrollWidth]);
           }
