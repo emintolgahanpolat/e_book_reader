@@ -94,7 +94,7 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
     return Stack(
       children: [
         widget.child,
-        if (scrollPosition < 0)
+        if (widget.onRefreshTop != null && scrollPosition < 0)
           Align(
             alignment: _readerController.config.axis == Axis.horizontal
                 ? Alignment.centerLeft
@@ -111,7 +111,8 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
                   ),
             ),
           ),
-        if (scrollPosition > scrollHeight - contentHeight)
+        if (widget.onRefreshBottom != null &&
+            scrollPosition > scrollHeight - contentHeight)
           Align(
             alignment: _readerController.config.axis == Axis.horizontal
                 ? Alignment.centerRight
