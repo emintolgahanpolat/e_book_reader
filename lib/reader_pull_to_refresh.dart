@@ -6,7 +6,7 @@ class ReaderPullToRefresh extends StatefulWidget {
   final Future<void> Function()? onRefreshTop;
   final Future<void> Function()? onRefreshBottom;
   final ReaderContent child;
-  final Widget? loading;
+  final Widget Function(double progress)? loading;
   const ReaderPullToRefresh(
       {super.key,
       required this.child,
@@ -20,6 +20,11 @@ class ReaderPullToRefresh extends StatefulWidget {
 
 class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
   ReaderController get _readerController => (widget.child).controller;
+  int get scrollPosition => _readerController.scrollPosition;
+  double get scrollHeight => _readerController.scrollHeight;
+  double get contentHeight => _readerController.contentHeight;
+  Axis get axis => _readerController.config.axis;
+
   bool _isRefreshingTop = false;
   bool _isRefreshingBottom = false;
   late ReaderPositionListener listener;
@@ -29,15 +34,12 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
       setState(() {});
       if (!_isRefreshingTop &&
           widget.onRefreshTop != null &&
-          _readerController.scrollPosition < -50) {
+          _readerController.scrollPosition < -100) {
         _triggerRefreshTop();
       }
       if (!_isRefreshingBottom &&
           widget.onRefreshBottom != null &&
-          _readerController.scrollPosition >
-              _readerController.scrollHeight -
-                  _readerController.contentHeight +
-                  50) {
+          scrollPosition > scrollHeight - contentHeight + 100) {
         _triggerRefreshBottom();
       }
     };
@@ -56,10 +58,10 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
       _isRefreshingTop = true;
     });
     await widget.onRefreshTop?.call();
+    _readerController.scrollToPosition(0);
     setState(() {
       _isRefreshingTop = false;
     });
-    _readerController.scrollToPosition(0);
   }
 
   Future<void> _triggerRefreshBottom() async {
@@ -72,29 +74,60 @@ class _ReaderPullToRefreshState extends State<ReaderPullToRefresh> {
     });
   }
 
+  double calculateIndicatorValue(
+      double minScrollPosition, double maxScrollPosition) {
+    double normalizedPosition = (scrollPosition - minScrollPosition) /
+        (maxScrollPosition - minScrollPosition);
+
+    if (normalizedPosition < 0) {
+      return 0;
+    }
+
+    if (normalizedPosition > 1) {
+      return 1;
+    }
+    return 1 - normalizedPosition;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         widget.child,
-        if (_isRefreshingTop)
+        if (scrollPosition < 0)
           Align(
             alignment: _readerController.config.axis == Axis.horizontal
                 ? Alignment.centerLeft
                 : Alignment.topCenter,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: widget.loading ?? const CircularProgressIndicator(),
+              child: widget.loading?.call(_isRefreshingTop
+                      ? 1
+                      : calculateIndicatorValue(-100, 0)) ??
+                  CircularProgressIndicator(
+                    value: _isRefreshingTop
+                        ? null
+                        : calculateIndicatorValue(-100, 0),
+                  ),
             ),
           ),
-        if (_isRefreshingBottom)
+        if (scrollPosition > scrollHeight - contentHeight)
           Align(
             alignment: _readerController.config.axis == Axis.horizontal
                 ? Alignment.centerRight
                 : Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: widget.loading ?? const CircularProgressIndicator(),
+              child: widget.loading?.call(_isRefreshingBottom
+                      ? 1
+                      : calculateIndicatorValue(-100, 0)) ??
+                  CircularProgressIndicator(
+                    value: _isRefreshingBottom
+                        ? null
+                        : calculateIndicatorValue(
+                            scrollHeight - contentHeight + 100,
+                            scrollHeight - contentHeight),
+                  ),
             ),
           ),
       ],

@@ -51,10 +51,9 @@ class ReaderController {
         } catch (e) {
           // print(e);
         }
-
         _scrollPosition = mData[0].toInt();
         _contentHeight = mData[1];
-        _scrollHeight = mData[2];
+        _scrollHeight = mData[2] + config.padding.vertical;
         for (var element in _positionListener) {
           element.call();
         }
@@ -104,6 +103,7 @@ initialize();""");
         _injectCss([
           "* { padding: 0px !important; letter-spacing: normal !important; max-width: none !important; }"
         ]);
+
         _injectCss(["::selection { background: #ffb7b7; }"]);
         _injectCss(["* { font-family: ${config.fontFamily}!important; }"]);
         _injectCss(["* { font-size: ${config.fontSize} !important; }"]);
@@ -171,14 +171,14 @@ initialize();""");
   double get contentHeight => _contentHeight;
 
   int get totalPage {
-    if (contentHeight == 0) {
+    if (contentHeight <= 0 || scrollHeight <= 0) {
       return 1;
     }
-    return ((scrollHeight) / contentHeight).ceil();
+    return scrollHeight ~/ contentHeight;
   }
 
   int get currentPage {
-    if (scrollPosition <= 0) {
+    if (scrollPosition <= 0 || contentHeight <= 0) {
       return 1;
     }
     return (scrollPosition ~/ contentHeight) + 1;
@@ -253,7 +253,7 @@ initialize();""");
   }
 
   Future<void> scrollToPage(int page) {
-    var y = page * contentHeight;
+    var y = page * contentHeight - 1;
     return scrollToPosition(y);
   }
 
@@ -277,7 +277,7 @@ initialize();""");
         </div>
 
          <script>
-         document.getElementById('content').height = window.innerWidth
+        document.getElementById('content').style.height =  window.innerHeight + 'px'
           function updatePageInfo(){
          
             var scrollPosition = window.scrollY;

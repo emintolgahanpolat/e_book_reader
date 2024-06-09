@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:e_book_reader/config.dart';
 import 'package:e_book_reader/e_book_reader.dart';
 import 'package:example/const.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,8 +47,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    _readerController =
-        ReaderController(pref: SharedConfigPrefrenceImpl(widget.pref));
+    _readerController = ReaderController();
     _readerController.load(longText);
 
     _readerController.addScrollListener(() {
@@ -82,15 +80,20 @@ class _HomePageState extends State<HomePage> {
             children: [
               ReaderPullToRefresh(
                 onRefreshTop: () async {
-                  await Future.delayed(const Duration(seconds: 2));
+                  await Future.delayed(const Duration(seconds: 4));
                   return;
                 },
+                loading: (progress) {
+                  if (progress == 1) {
+                    return const Text("Loading");
+                  }
+                  return const Text("Pull To refresh");
+                },
                 onRefreshBottom: () async {
-                  await Future.delayed(const Duration(seconds: 2));
+                  await Future.delayed(const Duration(seconds: 4));
 
                   return;
                 },
-                loading: const CupertinoActivityIndicator(),
                 child: ReaderContent(
                   controller: _readerController,
                 ),
@@ -145,8 +148,9 @@ class _HomePageState extends State<HomePage> {
                       Slider(
                         divisions: _readerController.totalPage - 1,
                         label: _readerController.currentPage.toString(),
-                        value: _readerController.currentPage.toDouble().clamp(
-                            0, _readerController.totalPage.toDouble() - 1),
+                        value: _readerController.currentPage
+                            .toDouble()
+                            .clamp(0, _readerController.totalPage.toDouble()),
                         min: 1,
                         max: _readerController.totalPage.toDouble(),
                         onChanged: (value) {
