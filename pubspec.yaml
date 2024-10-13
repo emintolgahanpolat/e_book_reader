@@ -1,10 +1,10 @@
 name: e_book_reader
 description: "A powerful E-Book Reader for Flutter apps. Features adjustable text styles, light/dark modes, horizontal/vertical layouts, and scroll tracking. Perfect for a smooth, user-friendly reading experience."
-version: 0.0.10
+version: 0.0.11
 homepage: https://github.com/emintolgahanpolat/e_book_reader
 
 environment:
-  sdk: '>=3.3.4 <4.0.0'
+  sdk: ">=3.3.4 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
@@ -27,7 +27,6 @@ flutter: null
 # To add assets to your package, add an assets section, like this:
 assets:
   - assets/
-
 #   - images/a_dot_ham.jpeg
 #
 # For details regarding assets in packages, see
