@@ -22,18 +22,17 @@ class _ReaderContentState extends State<ReaderContent> {
 
     if (controller.config.axis == Axis.horizontal) {
       return LayoutBuilder(builder: (_, box) {
-        final paginator = TextPaginator(
+        var pages = TextPaginator(
           text: controller.text!,
           textStyle: TextStyle(
             fontSize: controller.config.fontSize,
             color: controller.config.foregroundColor,
           ),
           pageSize: Size(
-            box.maxWidth - controller.config.padding.vertical,
-            box.maxHeight - controller.config.padding.horizontal - 8,
+            box.maxWidth - controller.config.padding.horizontal,
+            box.maxHeight - controller.config.padding.vertical - 8,
           ),
-        );
-        var pages = paginator.paginate();
+        ).paginate();
         return PageView.builder(
           controller: controller.pageController,
           itemCount: pages.length,

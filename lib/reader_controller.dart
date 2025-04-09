@@ -19,11 +19,25 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   final ScrollController _scrollController = ScrollController();
   ScrollController get scrollController => _scrollController;
 
+  ChangeNotifier get scrollNotifier {
+    if (value.axis == Axis.horizontal) {
+      return _pageController;
+    } else {
+      return _scrollController;
+    }
+  }
+
   final PageController _pageController = PageController();
   PageController get pageController => _pageController;
   ReaderController({SharedConfigPreference? pref, ReaderConfig? config})
       : super(pref?.load() ?? config ?? ReaderConfig()) {
     _sharedConfigPrefrence = pref;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients || _pageController.hasClients) {
+        notifyListeners();
+      }
+    });
   }
 
   bool _loading = false;
@@ -38,28 +52,52 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
     _loadingListener = listener;
   }
 
-  double get scrollHeight => _scrollController.hasClients
-      ? scrollController.position.maxScrollExtent
-      : 1.0;
-  double get scrollPosition =>
-      _scrollController.hasClients ? scrollController.offset : 1.0;
+  double get scrollSize {
+    if (value.axis == Axis.horizontal) {
+      return _pageController.hasClients
+          ? _pageController.position.maxScrollExtent
+          : .1;
+    }
+    return _scrollController.hasClients
+        ? scrollController.position.maxScrollExtent
+        : 0.1;
+  }
 
-  double get contentHeight => _scrollController.hasClients
-      ? scrollController.position.viewportDimension
-      : 1.0;
+  double get scrollPosition {
+    if (value.axis == Axis.horizontal) {
+      return _pageController.hasClients ? _pageController.offset : 0;
+    }
+    return _scrollController.hasClients ? scrollController.offset : 0;
+  }
+
+  double get contentSize {
+    if (value.axis == Axis.horizontal) {
+      return _pageController.hasClients
+          ? _pageController.position.viewportDimension
+          : 0;
+    }
+    return _scrollController.hasClients
+        ? scrollController.position.viewportDimension
+        : 0;
+  }
 
   int get totalPage {
-    if (contentHeight <= 0 || scrollHeight <= 0) {
+    if (contentSize <= 0 || scrollSize <= 0) {
       return 1;
     }
-    return (scrollHeight ~/ contentHeight) + 1;
+    return (scrollSize ~/ contentSize) + 1;
   }
 
   int get currentPage {
-    return (scrollPosition ~/ contentHeight) + 1;
+    if (contentSize <= 0 || scrollSize <= 0) {
+      return 1;
+    }
+    return (scrollPosition ~/ contentSize) + 1;
   }
 
-  double get rate => (scrollPosition / (scrollHeight)).clamp(0, 1);
+  double get rate {
+    return (scrollPosition / (scrollSize)).clamp(0, 1);
+  }
 
   void setFontWeight(FontWeight weight) {
     updateValue(value.copyWith(
@@ -122,16 +160,28 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   }
 
   void scrollToRate(double rate) {
-    var y = rate * (scrollHeight - contentHeight);
-    _scrollController.jumpTo(y);
+    if (_scrollController.hasClients) {
+      var y = rate * (scrollSize - contentSize);
+      _scrollController.jumpTo(y);
+    } else {
+      debugPrint("ScrollController has no clients. Cannot scroll to rate.");
+    }
   }
 
   void scrollToPage(int page) {
-    if (Axis.horizontal == config.axis) {
-      _pageController.jumpToPage(page);
-      return;
+    if (value.axis == Axis.horizontal) {
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(page);
+      } else {
+        debugPrint("PageController has no clients. Cannot scroll to page.");
+      }
+    } else {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(page * contentSize - contentSize);
+      } else {
+        debugPrint("ScrollController has no clients. Cannot scroll to page.");
+      }
     }
-    _scrollController.jumpTo(page * contentHeight - contentHeight);
   }
 
   final debouncer = Debouncer(milliseconds: 100);
@@ -144,6 +194,7 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   String? get text => _text;
   Future<void> load(String text) async {
     _text = text;
+    scrollToPage(0);
   }
 }
 

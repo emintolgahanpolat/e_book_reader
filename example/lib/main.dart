@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     _readerController = ReaderController(
       config: ReaderConfig(
-        axis: Axis.vertical,
+        axis: Axis.horizontal,
       ),
     );
     _readerController.load(longText);
@@ -62,8 +62,8 @@ class _HomePageState extends State<HomePage> {
         valueListenable: _readerController,
         builder: (context, config, child) {
           return ListenableBuilder(
-              listenable: _readerController.scrollController,
-              builder: (context, snapshot) {
+              listenable: _readerController.scrollNotifier,
+              builder: (context, widget) {
                 return Scaffold(
                   backgroundColor: config.backgroundColor,
                   appBar: AppBar(
@@ -81,25 +81,46 @@ class _HomePageState extends State<HomePage> {
                           "${_readerController.currentPage} / ${_readerController.totalPage}")
                     ],
                   ),
-                  floatingActionButton: FloatingActionButton(
-                    onPressed: () {
-                      _readerController.scrollToPage(2);
-                    },
-                    child: const Icon(Icons.arrow_upward),
-                  ),
+                  floatingActionButtonLocation: _readerController.rate > 0.5
+                      ? FloatingActionButtonLocation.centerFloat
+                      : FloatingActionButtonLocation.centerTop,
+                  floatingActionButtonAnimator:
+                      FloatingActionButtonAnimator.scaling,
+                  floatingActionButton: _readerController.rate == 1
+                      ? FloatingActionButton.extended(
+                          onPressed: () {},
+                          label: const Column(
+                            children: [
+                              Text("Sonraki Bölümü Yükle"),
+                              Icon(Icons.arrow_downward),
+                            ],
+                          ),
+                        )
+                      : _readerController.rate == 0
+                          ? FloatingActionButton.extended(
+                              onPressed: () {},
+                              label: const Column(
+                                children: [
+                                  Icon(Icons.arrow_upward),
+                                  Text("Önceki Bölümü Yükle")
+                                ],
+                              ),
+                            )
+                          : null,
                   extendBody: true,
                   body: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
-                      if (ScreenMode.full == _screenMode) {
-                        _screenMode = ScreenMode.settings;
-                      } else if (ScreenMode.settings == _screenMode) {
-                        _screenMode = ScreenMode.full;
-                      } else if (ScreenMode.more == _screenMode) {
-                        _screenMode = ScreenMode.settings;
-                      }
-
-                      setState(() {});
+                      // Improved state transition logic for _screenMode
+                      setState(() {
+                        if (_screenMode == ScreenMode.full) {
+                          _screenMode = ScreenMode.settings;
+                        } else if (_screenMode == ScreenMode.settings) {
+                          _screenMode = ScreenMode.more;
+                        } else if (_screenMode == ScreenMode.more) {
+                          _screenMode = ScreenMode.full;
+                        }
+                      });
                     },
                     child: ReaderContent(
                       controller: _readerController,
