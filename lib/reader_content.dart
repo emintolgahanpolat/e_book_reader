@@ -1,6 +1,6 @@
+import 'package:e_book_reader/pager.dart';
 import 'package:e_book_reader/reader_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class ReaderContent extends StatefulWidget {
   final ReaderController controller;
@@ -13,23 +13,58 @@ class ReaderContent extends StatefulWidget {
 }
 
 class _ReaderContentState extends State<ReaderContent> {
-  bool _loading = false;
-  @override
-  void initState() {
-    widget.controller.setLoadingListener((v) {
-      _loading = v;
-      setState(() {});
-    });
-    super.initState();
-  }
-
+  ReaderController get controller => widget.controller;
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
+    if (controller.text == null) {
       return widget.loadingWidget ?? const CircularProgressIndicator();
     }
-    return WebViewWidget(
-      controller: widget.controller.webViewController,
-    );
+
+    if (controller.config.axis == Axis.horizontal) {
+      return LayoutBuilder(builder: (_, box) {
+        final paginator = TextPaginator(
+          text: controller.text!,
+          textStyle: TextStyle(
+            fontSize: controller.config.fontSize,
+            color: controller.config.foregroundColor,
+          ),
+          pageSize: Size(
+            box.maxWidth - controller.config.padding.vertical,
+            box.maxHeight - controller.config.padding.horizontal - 8,
+          ),
+        );
+        var pages = paginator.paginate();
+        return PageView.builder(
+          controller: controller.pageController,
+          itemCount: pages.length,
+          physics: const ScrollPhysics(),
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: controller.config.padding,
+              child: Text(
+                pages[index],
+                style: TextStyle(
+                  fontSize: controller.config.fontSize,
+                  color: controller.config.foregroundColor,
+                ),
+              ),
+            );
+          },
+        );
+      });
+    } else {
+      return SingleChildScrollView(
+        padding: controller.config.padding,
+        controller: controller.scrollController,
+        physics: const BouncingScrollPhysics(),
+        child: Text(
+          controller.text!,
+          style: TextStyle(
+            fontSize: controller.config.fontSize,
+            color: controller.config.foregroundColor,
+          ),
+        ),
+      );
+    }
   }
 }

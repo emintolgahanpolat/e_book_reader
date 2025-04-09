@@ -1,5 +1,7 @@
 name: e_book_reader
-description: "A powerful E-Book Reader for Flutter apps. Features adjustable text styles, light/dark modes, horizontal/vertical layouts, and scroll tracking. Perfect for a smooth, user-friendly reading experience."
+description: "A powerful E-Book Reader for Flutter apps. Features adjustable
+  text styles, light/dark modes, horizontal/vertical layouts, and scroll
+  tracking. Perfect for a smooth, user-friendly reading experience."
 version: 0.0.11
 homepage: https://github.com/emintolgahanpolat/e_book_reader
 
@@ -10,19 +12,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.7.0
-  webview_flutter_android: ^3.16.1
-  webview_flutter_wkwebview: ^3.13.1
 
 dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-# The following section is specific to Flutter packages.
-flutter: null
 
 # To add assets to your package, add an assets section, like this:
 assets:

@@ -43,85 +43,75 @@ class _HomePageState extends State<HomePage> {
   late ReaderController _readerController;
 
   ScreenMode _screenMode = ScreenMode.full;
-  Color color = Colors.white;
 
   @override
   void initState() {
-    _readerController = ReaderController();
+    _readerController = ReaderController(
+      config: ReaderConfig(
+        axis: Axis.vertical,
+      ),
+    );
     _readerController.load(longText);
 
-    _readerController.addScrollListener(() {
-      setState(() {});
-    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: color,
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            title: const Text("Title"),
-            backgroundColor: color,
-            actions: [
-              Text("${(_readerController.rate * 100).toStringAsFixed(0)}%"),
-              const SizedBox(
-                width: 16,
-              ),
-              Text(
-                  "${_readerController.currentPage} / ${_readerController.totalPage}")
-            ],
-          ),
-          extendBody: true,
-          body: Stack(
-            children: [
-              ReaderPullToRefresh(
-                onRefreshTop: () async {
-                  await Future.delayed(const Duration(seconds: 4));
-                  return;
-                },
-                loading: (progress) {
-                  if (progress == 1) {
-                    return const Text("Loading");
-                  }
-                  return const Text("Pull To refresh");
-                },
-                onRefreshBottom: () async {
-                  await Future.delayed(const Duration(seconds: 4));
+    return ValueListenableBuilder<ReaderConfig>(
+        valueListenable: _readerController,
+        builder: (context, config, child) {
+          return ListenableBuilder(
+              listenable: _readerController.scrollController,
+              builder: (context, snapshot) {
+                return Scaffold(
+                  backgroundColor: config.backgroundColor,
+                  appBar: AppBar(
+                    title: const Text("Title"),
+                    backgroundColor: config.backgroundColor,
+                    foregroundColor: config.foregroundColor,
+                    scrolledUnderElevation: 0,
+                    actions: [
+                      Text(
+                          "${(_readerController.rate * 100).toStringAsFixed(0)}%"),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Text(
+                          "${_readerController.currentPage} / ${_readerController.totalPage}")
+                    ],
+                  ),
+                  floatingActionButton: FloatingActionButton(
+                    onPressed: () {
+                      _readerController.scrollToPage(2);
+                    },
+                    child: const Icon(Icons.arrow_upward),
+                  ),
+                  extendBody: true,
+                  body: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      if (ScreenMode.full == _screenMode) {
+                        _screenMode = ScreenMode.settings;
+                      } else if (ScreenMode.settings == _screenMode) {
+                        _screenMode = ScreenMode.full;
+                      } else if (ScreenMode.more == _screenMode) {
+                        _screenMode = ScreenMode.settings;
+                      }
 
-                  return;
-                },
-                child: ReaderContent(
-                  controller: _readerController,
-                ),
-              ),
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  if (ScreenMode.full == _screenMode) {
-                    _screenMode = ScreenMode.settings;
-                  } else if (ScreenMode.settings == _screenMode) {
-                    _screenMode = ScreenMode.full;
-                  } else if (ScreenMode.more == _screenMode) {
-                    _screenMode = ScreenMode.settings;
-                  }
-
-                  setState(() {});
-                },
-                child: Container(),
-              ),
-            ],
-          ),
-          bottomNavigationBar: buildSheet(),
-        ),
-      ),
-    );
+                      setState(() {});
+                    },
+                    child: ReaderContent(
+                      controller: _readerController,
+                    ),
+                  ),
+                  bottomNavigationBar: buildSheet(config),
+                );
+              });
+        });
   }
 
-  Widget? buildSheet() {
+  Widget? buildSheet(ReaderConfig config) {
     switch (_screenMode) {
       case ScreenMode.full:
         return null;
@@ -129,43 +119,51 @@ class _HomePageState extends State<HomePage> {
       case ScreenMode.settings:
         return IntrinsicHeight(
           child: Container(
-              color: color,
+              color: config.backgroundColor,
               child: SafeArea(
                 child: Column(
                   children: [
                     const Divider(
                       height: 1,
                     ),
-                    Slider(
-                      value: _readerController.rate,
-                      min: 0,
-                      max: 1,
-                      onChanged: (value) {
-                        _readerController.scrollToRate(value);
-                      },
-                    ),
-                    if (_readerController.totalPage > 0)
-                      Slider(
-                        divisions: _readerController.totalPage - 1,
-                        label: _readerController.currentPage.toString(),
-                        value: _readerController.currentPage
-                            .toDouble()
-                            .clamp(0, _readerController.totalPage.toDouble()),
-                        min: 1,
-                        max: _readerController.totalPage.toDouble(),
-                        onChanged: (value) {
-                          _readerController.scrollToPage(value.toInt());
-                        },
-                      ),
+                    // Slider(
+                    //   value: _readerController.rate,
+                    //   min: 0,
+                    //   max: 1,
+                    //   onChanged: (value) {
+                    //     _readerController.scrollToRate(value);
+                    //   },
+                    // ),
+                    // if (_readerController.totalPage > 0)
+                    //   Slider(
+                    //     divisions: _readerController.totalPage - 1,
+                    //     label: _readerController.currentPage.toString(),
+                    //     value: _readerController.currentPage
+                    //         .toDouble()
+                    //         .clamp(0, _readerController.totalPage.toDouble()),
+                    //     min: 1,
+                    //     max: _readerController.totalPage.toDouble(),
+                    //     onChanged: (value) {
+                    //       _readerController.scrollToPage(value.toInt());
+                    //     },
+                    //   ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         IconButton(
                             onPressed: () {},
-                            icon: const Column(
+                            icon: Column(
                               children: [
-                                Icon(Icons.list),
-                                Text("Bölümler"),
+                                Icon(
+                                  Icons.list,
+                                  color: config.foregroundColor,
+                                ),
+                                Text(
+                                  "Bölümler",
+                                  style: TextStyle(
+                                    color: config.foregroundColor,
+                                  ),
+                                ),
                               ],
                             )),
                         IconButton(
@@ -181,11 +179,19 @@ class _HomePageState extends State<HomePage> {
                             },
                             icon: Column(
                               children: [
-                                const Icon(Icons.light),
-                                Text(_readerController.config.backgroundColor ==
-                                        Colors.black
-                                    ? "Light"
-                                    : "Dark"),
+                                Icon(
+                                  Icons.light,
+                                  color: config.foregroundColor,
+                                ),
+                                Text(
+                                  _readerController.config.backgroundColor ==
+                                          Colors.black
+                                      ? "Light"
+                                      : "Dark",
+                                  style: TextStyle(
+                                    color: config.foregroundColor,
+                                  ),
+                                ),
                               ],
                             )),
                         IconButton(
@@ -193,10 +199,18 @@ class _HomePageState extends State<HomePage> {
                               _screenMode = ScreenMode.more;
                               setState(() {});
                             },
-                            icon: const Column(
+                            icon: Column(
                               children: [
-                                Icon(Icons.more_horiz),
-                                Text("More"),
+                                Icon(
+                                  Icons.more_horiz,
+                                  color: config.foregroundColor,
+                                ),
+                                Text(
+                                  "More",
+                                  style: TextStyle(
+                                    color: config.foregroundColor,
+                                  ),
+                                ),
                               ],
                             )),
                       ],
@@ -207,7 +221,7 @@ class _HomePageState extends State<HomePage> {
         );
       case ScreenMode.more:
         return Container(
-          color: color,
+          color: config.backgroundColor,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -350,7 +364,14 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.text_rotate_up_outlined)),
                   ],
                 ),
-              )
+              ),
+              SwitchListTile(
+                  value: config.axis == Axis.horizontal,
+                  onChanged: (v) {
+                    _readerController
+                        .setAxis(v ? Axis.horizontal : Axis.vertical);
+                  },
+                  title: const Text("Horizontal")),
             ],
           ),
         );

@@ -6,7 +6,7 @@ class ReaderConfig {
   FontStyle fontStyle;
   TextAlign textAlign;
   String fontFamily;
-  int fontSize;
+  double fontSize;
   double lineHeight;
   EdgeInsets padding;
   Color backgroundColor;
@@ -20,7 +20,7 @@ class ReaderConfig {
     this.fontFamily = "default",
     this.fontSize = 16,
     this.lineHeight = 1.6,
-    this.padding = const EdgeInsets.all(8),
+    this.padding = const EdgeInsets.all(16),
     this.backgroundColor = Colors.white,
     this.foregroundColor = Colors.black,
   });
@@ -60,8 +60,34 @@ class ReaderConfig {
         "right": padding.right,
         "bottom": padding.bottom,
       },
-      "backgroundColor": backgroundColor.value,
-      "foregroundColor": foregroundColor.value,
+      "backgroundColor": backgroundColor.toARGB32(),
+      "foregroundColor": foregroundColor.toARGB32(),
     };
+  }
+
+  ReaderConfig copyWith({
+    Axis? axis,
+    FontWeight? fontWeight,
+    FontStyle? fontStyle,
+    TextAlign? textAlign,
+    String? fontFamily,
+    double? fontSize,
+    double? lineHeight,
+    EdgeInsets? padding,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    return ReaderConfig(
+      axis: axis ?? this.axis,
+      fontWeight: fontWeight ?? this.fontWeight,
+      fontStyle: fontStyle ?? this.fontStyle,
+      textAlign: textAlign ?? this.textAlign,
+      fontFamily: fontFamily ?? this.fontFamily,
+      fontSize: fontSize ?? this.fontSize,
+      lineHeight: lineHeight ?? this.lineHeight,
+      padding: padding ?? this.padding,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      foregroundColor: foregroundColor ?? this.foregroundColor,
+    );
   }
 }
