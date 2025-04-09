@@ -90,4 +90,15 @@ class ReaderConfig {
       foregroundColor: foregroundColor ?? this.foregroundColor,
     );
   }
+
+  TextStyle get textStyle {
+    return TextStyle(
+      fontSize: fontSize,
+      color: foregroundColor,
+      fontFamily: fontFamily,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      height: lineHeight,
+    );
+  }
 }

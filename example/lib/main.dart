@@ -81,32 +81,6 @@ class _HomePageState extends State<HomePage> {
                           "${_readerController.currentPage} / ${_readerController.totalPage}")
                     ],
                   ),
-                  floatingActionButtonLocation: _readerController.rate > 0.5
-                      ? FloatingActionButtonLocation.centerFloat
-                      : FloatingActionButtonLocation.centerTop,
-                  floatingActionButtonAnimator:
-                      FloatingActionButtonAnimator.scaling,
-                  floatingActionButton: _readerController.rate == 1
-                      ? FloatingActionButton.extended(
-                          onPressed: () {},
-                          label: const Column(
-                            children: [
-                              Text("Sonraki Bölümü Yükle"),
-                              Icon(Icons.arrow_downward),
-                            ],
-                          ),
-                        )
-                      : _readerController.rate == 0
-                          ? FloatingActionButton.extended(
-                              onPressed: () {},
-                              label: const Column(
-                                children: [
-                                  Icon(Icons.arrow_upward),
-                                  Text("Önceki Bölümü Yükle")
-                                ],
-                              ),
-                            )
-                          : null,
                   extendBody: true,
                   body: GestureDetector(
                     behavior: HitTestBehavior.translucent,
@@ -123,6 +97,27 @@ class _HomePageState extends State<HomePage> {
                       });
                     },
                     child: ReaderContent(
+                      coverPageBuilder: (context) {
+                        return Center(
+                            child: Text(
+                          "Merhaba",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ));
+                      },
+                      previousPageBuilder: (context) {
+                        return Center(
+                            child: Text(
+                          "Önceki Bölüme Dön",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ));
+                      },
+                      nextPageBuilder: (context) {
+                        return Center(
+                            child: Text(
+                          "Devam Et",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ));
+                      },
                       controller: _readerController,
                     ),
                   ),
@@ -328,15 +323,6 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Wrap(
                   children: [
-                    PopupMenuButton<String>(
-                        onSelected: (v) {
-                          _readerController.setFontFamily(v);
-                        },
-                        icon: const Icon(Icons.font_download),
-                        itemBuilder: (c) => _readerController.fonts
-                            .map((e) => PopupMenuItem(
-                                value: e, child: Text(e.toString())))
-                            .toList()),
                     IconButton(
                         onPressed: () {
                           _readerController.setAxis(
@@ -348,6 +334,15 @@ class _HomePageState extends State<HomePage> {
                             _readerController.config.axis == Axis.vertical
                                 ? Icons.vertical_distribute
                                 : Icons.horizontal_distribute)),
+                    PopupMenuButton<String>(
+                        onSelected: (v) {
+                          _readerController.setFontFamily(v);
+                        },
+                        icon: const Icon(Icons.font_download),
+                        itemBuilder: (c) => _readerController.fonts
+                            .map((e) => PopupMenuItem(
+                                value: e, child: Text(e.toString())))
+                            .toList()),
                     PopupMenuButton<int>(
                         onSelected: (v) {
                           _readerController.setFontWeight(FontWeight.values
@@ -386,13 +381,6 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              SwitchListTile(
-                  value: config.axis == Axis.horizontal,
-                  onChanged: (v) {
-                    _readerController
-                        .setAxis(v ? Axis.horizontal : Axis.vertical);
-                  },
-                  title: const Text("Horizontal")),
             ],
           ),
         );

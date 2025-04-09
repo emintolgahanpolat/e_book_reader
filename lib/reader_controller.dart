@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:e_book_reader/config.dart';
 import 'package:e_book_reader/config_preference.dart';
+import 'package:e_book_reader/transformer/index_controller.dart';
 import 'package:flutter/material.dart';
 
 typedef ReaderPositionListener = void Function();
@@ -16,25 +17,18 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
     _sharedConfigPrefrence?.save(config);
   }
 
-  final ScrollController _scrollController = ScrollController();
-  ScrollController get scrollController => _scrollController;
-
-  ChangeNotifier get scrollNotifier {
-    if (value.axis == Axis.horizontal) {
-      return _pageController;
-    } else {
-      return _scrollController;
-    }
-  }
-
   final PageController _pageController = PageController();
   PageController get pageController => _pageController;
+
+  ChangeNotifier get scrollNotifier {
+    return _pageController;
+  }
+
   ReaderController({SharedConfigPreference? pref, ReaderConfig? config})
       : super(pref?.load() ?? config ?? ReaderConfig()) {
     _sharedConfigPrefrence = pref;
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients || _pageController.hasClients) {
+      if (_pageController.hasClients) {
         notifyListeners();
       }
     });
@@ -53,32 +47,19 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   }
 
   double get scrollSize {
-    if (value.axis == Axis.horizontal) {
-      return _pageController.hasClients
-          ? _pageController.position.maxScrollExtent
-          : .1;
-    }
-    return _scrollController.hasClients
-        ? scrollController.position.maxScrollExtent
-        : 0.1;
+    return _pageController.hasClients
+        ? _pageController.position.maxScrollExtent
+        : 1.0;
   }
 
   double get scrollPosition {
-    if (value.axis == Axis.horizontal) {
-      return _pageController.hasClients ? _pageController.offset : 0;
-    }
-    return _scrollController.hasClients ? scrollController.offset : 0;
+    return _pageController.hasClients ? _pageController.offset : 1.0;
   }
 
   double get contentSize {
-    if (value.axis == Axis.horizontal) {
-      return _pageController.hasClients
-          ? _pageController.position.viewportDimension
-          : 0;
-    }
-    return _scrollController.hasClients
-        ? scrollController.position.viewportDimension
-        : 0;
+    return _pageController.hasClients
+        ? _pageController.position.viewportDimension
+        : 1.0;
   }
 
   int get totalPage {
@@ -89,9 +70,6 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   }
 
   int get currentPage {
-    if (contentSize <= 0 || scrollSize <= 0) {
-      return 1;
-    }
     return (scrollPosition ~/ contentSize) + 1;
   }
 
@@ -160,28 +138,16 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   }
 
   void scrollToRate(double rate) {
-    if (_scrollController.hasClients) {
-      var y = rate * (scrollSize - contentSize);
-      _scrollController.jumpTo(y);
-    } else {
-      debugPrint("ScrollController has no clients. Cannot scroll to rate.");
-    }
+    var y = rate * (scrollSize - contentSize);
+    _pageController.jumpTo(y);
   }
 
   void scrollToPage(int page) {
-    if (value.axis == Axis.horizontal) {
-      if (_pageController.hasClients) {
-        _pageController.jumpToPage(page);
-      } else {
-        debugPrint("PageController has no clients. Cannot scroll to page.");
-      }
-    } else {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(page * contentSize - contentSize);
-      } else {
-        debugPrint("ScrollController has no clients. Cannot scroll to page.");
-      }
+    if (Axis.horizontal == value.axis) {
+      _pageController.jumpToPage(page);
+      return;
     }
+    _pageController.jumpTo(page * contentSize - contentSize);
   }
 
   final debouncer = Debouncer(milliseconds: 100);
@@ -194,7 +160,6 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   String? get text => _text;
   Future<void> load(String text) async {
     _text = text;
-    scrollToPage(0);
   }
 }
 
