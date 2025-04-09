@@ -39,7 +39,7 @@ class _ReaderContentState extends State<ReaderContent> {
         textStyle: controller.config.textStyle,
         pageSize: Size(
           box.maxWidth - controller.config.padding.horizontal,
-          box.maxHeight - controller.config.padding.vertical,
+          box.maxHeight - (controller.config.padding.vertical * 4),
         ),
       ).paginate();
       return PageView.builder(
@@ -87,10 +87,7 @@ class _ReaderContentState extends State<ReaderContent> {
             padding: controller.config.padding,
             child: Text(
               pages[pageIndex],
-              style: TextStyle(
-                fontSize: controller.config.fontSize,
-                color: controller.config.foregroundColor,
-              ),
+              style: controller.config.textStyle,
             ),
           );
         },
