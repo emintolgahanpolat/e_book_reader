@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:e_book_reader/config.dart';
 import 'package:e_book_reader/config_preference.dart';
-import 'package:e_book_reader/transformer/index_controller.dart';
 import 'package:flutter/material.dart';
 
 typedef ReaderPositionListener = void Function();
