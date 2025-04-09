@@ -50,7 +50,13 @@ class _ReaderContentState extends State<ReaderContent> {
                 : (widget.coverPageBuilder != null ? 1 : 0)) +
             (widget.nextPageBuilder != null ? 1 : 0),
         scrollDirection: controller.config.axis,
-        pageSnapping: controller.config.axis == Axis.horizontal,
+        pageSnapping:
+            widget.coverPageBuilder != null && controller.currentPage == 1
+                ? true
+                : widget.nextPageBuilder != null &&
+                        controller.currentPage - 1 == pages.length
+                    ? true
+                    : controller.config.axis == Axis.horizontal,
         physics: const ScrollPhysics(),
         itemBuilder: (context, index) {
           if (widget.previousPageBuilder != null && index == 0) {

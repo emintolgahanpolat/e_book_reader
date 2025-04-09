@@ -33,18 +33,6 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
     });
   }
 
-  bool _loading = false;
-  bool get loading => _loading;
-  void setLoading(bool value) {
-    _loading = value;
-    _loadingListener?.call(value);
-  }
-
-  LoadingListener? _loadingListener;
-  void setLoadingListener(LoadingListener listener) {
-    _loadingListener = listener;
-  }
-
   double get scrollSize {
     return _pageController.hasClients
         ? _pageController.position.maxScrollExtent
