@@ -38,8 +38,8 @@ class _ReaderContentState extends State<ReaderContent> {
         text: controller.text!,
         textStyle: controller.config.textStyle,
         pageSize: Size(
-          box.maxWidth - controller.config.padding.horizontal,
-          box.maxHeight - (controller.config.padding.vertical * 4),
+          box.maxWidth - (controller.config.padding.horizontal * 2),
+          box.maxHeight - (controller.config.padding.vertical * 2),
         ),
       ).paginate();
       return PageView.builder(
