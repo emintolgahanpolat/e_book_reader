@@ -32,7 +32,7 @@ dependencies:
     sdk: flutter
   e_book_reader:
     path: ../
-
+  google_fonts: ^6.2.1
   shared_preferences: ^2.2.3
 
   # The following adds the Cupertino Icons font to your application.

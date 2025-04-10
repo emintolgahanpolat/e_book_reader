@@ -24,8 +24,13 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
   }
 
   ReaderController({SharedConfigPreference? pref, ReaderConfig? config})
-      : super(pref?.load() ?? config ?? ReaderConfig()) {
+      : super(ReaderConfig()) {
     _sharedConfigPrefrence = pref;
+    var loadData = pref?.load();
+    if (loadData != null) {
+      updateValue(pref?.load() ?? config ?? ReaderConfig());
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_pageController.hasClients) {
         notifyListeners();

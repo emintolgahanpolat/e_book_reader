@@ -16,7 +16,7 @@ class ReaderConfig {
     this.axis = Axis.vertical,
     this.fontWeight = FontWeight.normal,
     this.fontStyle = FontStyle.normal,
-    this.textAlign = TextAlign.left,
+    this.textAlign = TextAlign.start,
     this.fontFamily = "default",
     this.fontSize = 16,
     this.lineHeight = 1.6,

@@ -1,9 +1,10 @@
-import 'dart:convert';
-
 import 'package:e_book_reader/config.dart';
 import 'package:e_book_reader/e_book_reader.dart';
 import 'package:example/const.dart';
+import 'package:example/pref.dart';
+import 'package:example/util.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -29,8 +30,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-enum ScreenMode { full, more, settings }
-
 class HomePage extends StatefulWidget {
   final SharedPreferences pref;
   const HomePage({super.key, required this.pref});
@@ -47,6 +46,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     _readerController = ReaderController(
+      pref: SharedConfigPrefrenceImpl(widget.pref),
       config: ReaderConfig(
         axis: Axis.horizontal,
       ),
@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                       controller: _readerController,
                     ),
                   ),
-                  bottomNavigationBar: buildSheet(config),
+                  bottomSheet: buildSheet(config),
                 );
               });
         });
@@ -124,18 +124,27 @@ class _HomePageState extends State<HomePage> {
     if (!_isShow) {
       return null;
     }
-    return Container(
-      color: config.backgroundColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Divider(
-            height: 1,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-            child: Row(
+    return Theme(
+      data: Theme.of(context).copyWith(
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+              backgroundColor: config.backgroundColor,
+              foregroundColor: config.foregroundColor),
+        ),
+      ),
+      child: Container(
+        color: config.backgroundColor.darken(),
+        padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+            top: 16,
+            left: 16,
+            right: 16),
+        child: Column(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Color(0xFFFFFFFF),
@@ -143,73 +152,113 @@ class _HomePageState extends State<HomePage> {
                 const Color(0xFFFADED7),
                 const Color(0xFFEBE8E1),
                 const Color(0xFFE3EAE9),
-                const Color(0xFFCBD0EE)
+                const Color(0xFFCBD0EE),
+                const Color(0xFF000000)
               ]
                   .map(
                     (e) => InkWell(
                       onTap: () {
-                        _readerController.setColor(e, Colors.black);
+                        if (e == const Color(0xFF000000)) {
+                          _readerController.setColor(
+                            e,
+                            Colors.white,
+                          );
+                        } else {
+                          _readerController.setColor(
+                            e,
+                            Colors.black,
+                          );
+                        }
                       },
                       child: Container(
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                            color: e,
-                            shape: BoxShape.circle,
-                            border: Border.all()),
+                          color: e,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: config.foregroundColor,
+                          ),
+                        ),
                       ),
                     ),
                   )
                   .toList(),
             ),
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            child: SegmentedButton(
-                showSelectedIcon: false,
-                style: SegmentedButton.styleFrom(
-                  visualDensity:
-                      const VisualDensity(horizontal: -3, vertical: -3),
-                ),
-                segments: TextAlign.values
-                    .map(
-                      (e) => ButtonSegment(
-                          value: e, label: FittedBox(child: Text(e.name))),
-                    )
-                    .toList(),
-                onSelectionChanged: (p) {
-                  _readerController.setTextAlign(p.first);
-                },
-                selected: {_readerController.config.textAlign}),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            child: SegmentedButton<FontStyle>(
-                showSelectedIcon: false,
-                style: SegmentedButton.styleFrom(
-                  visualDensity:
-                      const VisualDensity(horizontal: -3, vertical: -3),
-                ),
-                segments: FontStyle.values
-                    .map(
-                      (e) => ButtonSegment(
-                          value: e, label: FittedBox(child: Text(e.name))),
-                    )
-                    .toList(),
-                onSelectionChanged: (p) {
-                  _readerController.setFontStyle(p.first);
-                },
-                selected: {_readerController.config.fontStyle}),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                PopupMenuButton<TextAlign>(
+                    color: _readerController.config.backgroundColor,
+                    onSelected: (p) {
+                      _readerController.setTextAlign(p);
+                    },
+                    constraints:
+                        const BoxConstraints(minWidth: 42, minHeight: 42),
+                    icon: Icon(
+                      _readerController.config.textAlign.icon,
+                    ),
+                    itemBuilder: (c) => [
+                          TextAlign.left,
+                          TextAlign.right,
+                          TextAlign.center,
+                          TextAlign.justify
+                        ]
+                            .map((e) => PopupMenuItem<TextAlign>(
+                                value: e,
+                                child: Center(
+                                  child: Icon(
+                                    e.icon,
+                                    color: _readerController
+                                        .config.textStyle.color,
+                                  ),
+                                )))
+                            .toList()),
+                PopupMenuButton<String>(
+                    style: TextButton.styleFrom(
+                      backgroundColor: config.backgroundColor,
+                      foregroundColor: config.foregroundColor,
+                    ),
+                    onSelected: (v) {
+                      print(v);
+                      _readerController.setFontFamily(v);
+                    },
+                    icon: const Icon(Icons.font_download),
+                    itemBuilder: (c) => [
+                          GoogleFonts.openSans().fontFamily,
+                          GoogleFonts.robotoSlab().fontFamily,
+                          GoogleFonts.lora().fontFamily,
+                          GoogleFonts.nunito().fontFamily,
+                          GoogleFonts.merriweather().fontFamily,
+                        ]
+                            .map((e) => PopupMenuItem(
+                                value: e,
+                                child:
+                                    Text(e?.replaceAll("_regular", "") ?? "")))
+                            .toList()),
+                PopupMenuButton<int>(
+                    style: TextButton.styleFrom(
+                      backgroundColor: config.backgroundColor,
+                      foregroundColor: config.foregroundColor,
+                    ),
+                    onSelected: (v) {
+                      _readerController.setFontWeight(FontWeight.values
+                          .firstWhere((element) => element.value == v));
+                    },
+                    icon: const Icon(Icons.format_bold_rounded),
+                    itemBuilder: (c) => FontWeight.values
+                        .map((e) => PopupMenuItem(
+                            value: e.value, child: Text(e.value.toString())))
+                        .toList()),
+                IconButton(
+                    onPressed: () {
+                      _readerController.setFontStyle(
+                          config.fontStyle == FontStyle.italic
+                              ? FontStyle.normal
+                              : FontStyle.italic);
+                    },
+                    icon: const Icon(Icons.format_italic_rounded)),
                 IconButton(
                     onPressed: () {
                       _readerController.setAxis(
@@ -220,25 +269,6 @@ class _HomePageState extends State<HomePage> {
                     icon: Icon(_readerController.config.axis == Axis.vertical
                         ? Icons.vertical_distribute
                         : Icons.horizontal_distribute)),
-                PopupMenuButton<String>(
-                    onSelected: (v) {
-                      _readerController.setFontFamily(v);
-                    },
-                    icon: const Icon(Icons.font_download),
-                    itemBuilder: (c) => _readerController.fonts
-                        .map((e) =>
-                            PopupMenuItem(value: e, child: Text(e.toString())))
-                        .toList()),
-                PopupMenuButton<int>(
-                    onSelected: (v) {
-                      _readerController.setFontWeight(FontWeight.values
-                          .firstWhere((element) => element.value == v));
-                    },
-                    icon: const Icon(Icons.format_bold_rounded),
-                    itemBuilder: (c) => FontWeight.values
-                        .map((e) => PopupMenuItem(
-                            value: e.value, child: Text(e.value.toString())))
-                        .toList()),
                 IconButton(
                     onPressed: () {
                       _readerController
@@ -265,33 +295,9 @@ class _HomePageState extends State<HomePage> {
                     icon: const Icon(Icons.text_rotate_up_outlined)),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-}
-
-class SharedConfigPrefrenceImpl extends SharedConfigPreference {
-  final SharedPreferences _pref;
-  SharedConfigPrefrenceImpl(this._pref);
-  @override
-  ReaderConfig? load() {
-    ReaderConfig? config;
-    String? data = _pref.getString("ReaderConfig3");
-    if (data == null) {
-      return null;
-    }
-    try {
-      config = ReaderConfig.fromJson(json.decode(data));
-    } catch (e) {
-      print(e);
-    }
-    return config;
-  }
-
-  @override
-  void save(ReaderConfig config) {
-    _pref.setString("ReaderConfig3", json.encode(config.toJson()));
   }
 }
