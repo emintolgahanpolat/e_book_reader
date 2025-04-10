@@ -2,7 +2,7 @@ name: e_book_reader
 description: "A powerful E-Book Reader for Flutter apps. Features adjustable
   text styles, light/dark modes, horizontal/vertical layouts, and scroll
   tracking. Perfect for a smooth, user-friendly reading experience."
-version: 0.0.11
+version: 0.0.12
 homepage: https://github.com/emintolgahanpolat/e_book_reader
 
 environment:
