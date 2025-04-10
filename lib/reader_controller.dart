@@ -129,17 +129,15 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
     );
   }
 
-  void scrollToRate(double rate) {
+  void jumpToRate(double rate) {
     var y = rate * (scrollSize - contentSize);
     _pageController.jumpTo(y);
   }
 
-  void scrollToPage(int page) {
-    if (Axis.horizontal == value.axis) {
+  void jumpToPage(int page) {
+    if (_pageController.hasClients) {
       _pageController.jumpToPage(page);
-      return;
     }
-    _pageController.jumpTo(page * contentSize - contentSize);
   }
 
   final debouncer = Debouncer(milliseconds: 100);
