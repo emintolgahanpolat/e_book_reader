@@ -95,7 +95,7 @@ class _ReaderContentState extends State<ReaderContent> {
                             controller.currentPage - 1 == pagesTexts.length
                         ? true
                         : controller.config.axis == Axis.horizontal,
-            physics: const ScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             itemBuilder: (context, index) {
               final isCurrentPage = index == controller.currentPage;
 
