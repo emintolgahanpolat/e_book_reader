@@ -32,66 +32,67 @@ class _ReaderContentState extends State<ReaderContent> {
             widget.loadingWidget ?? const CircularProgressIndicator.adaptive(),
       );
     }
-
-    return LayoutBuilder(builder: (_, box) {
-      var pages = TextPaginator(
-        text: controller.text!,
-        textStyle: controller.config.textStyle,
-        pageSize: Size(
-          box.maxWidth - (controller.config.padding.horizontal * 2),
-          box.maxHeight - (controller.config.padding.vertical * 2),
+    var pagesTexts = TextPaginator(
+      text: controller.text!,
+      textStyle: controller.config.textStyle,
+      pageSize: Size(
+        MediaQuery.of(context).size.width -
+            (controller.config.padding.horizontal * 2),
+        MediaQuery.of(context).size.height -
+            (controller.config.padding.vertical * 2),
+      ),
+    ).paginate();
+    var pages = [
+      if (widget.previousPageBuilder != null)
+        Container(
+          color: controller.config.backgroundColor,
+          child: widget.previousPageBuilder!(context),
         ),
-      ).paginate();
-      return PageView.builder(
-        controller: controller.pageController,
-        itemCount: pages.length +
-            (widget.previousPageBuilder != null
-                ? 1
-                : (widget.coverPageBuilder != null ? 1 : 0)) +
-            (widget.nextPageBuilder != null ? 1 : 0),
-        scrollDirection: controller.config.axis,
-        pageSnapping:
-            widget.coverPageBuilder != null && controller.currentPage == 1
-                ? true
-                : widget.nextPageBuilder != null &&
-                        controller.currentPage - 1 == pages.length
-                    ? true
-                    : controller.config.axis == Axis.horizontal,
-        physics: const ScrollPhysics(),
-        itemBuilder: (context, index) {
-          if (widget.previousPageBuilder != null && index == 0) {
-            // İlk sayfa için previousPageBuilder'ı göster
-            return widget.previousPageBuilder!(context);
-          }
-          if (widget.coverPageBuilder != null &&
-              widget.previousPageBuilder == null &&
-              index == 0) {
-            // İlk sayfa için coverPageBuilder'ı göster (previousPageBuilder yoksa)
-            return widget.coverPageBuilder!(context);
-          }
-          if (widget.nextPageBuilder != null &&
-              index ==
-                  pages.length +
-                      (widget.previousPageBuilder != null
-                          ? 1
-                          : (widget.coverPageBuilder != null ? 1 : 0))) {
-            // Son sayfa için nextPageBuilder'ı göster
-            return widget.nextPageBuilder!(context);
-          }
-          // Diğer sayfalar için metin göster
-          final pageIndex = (widget.previousPageBuilder != null ||
-                  widget.coverPageBuilder != null)
-              ? index - 1
-              : index;
-          return Padding(
-            padding: controller.config.padding,
-            child: Text(
-              pages[pageIndex],
-              style: controller.config.textStyle,
-            ),
-          );
-        },
-      );
-    });
+      if (widget.previousPageBuilder == null && widget.coverPageBuilder != null)
+        Container(
+          color: controller.config.backgroundColor,
+          child: widget.coverPageBuilder!(context),
+        ),
+      for (var i = 0; i < pagesTexts.length; i++)
+        Container(
+          color: controller.config.backgroundColor,
+          padding: controller.config.padding,
+          child: Text(
+            pagesTexts[i],
+            style: controller.config.textStyle,
+          ),
+        ),
+      if (widget.nextPageBuilder != null)
+        Container(
+            color: controller.config.backgroundColor,
+            child: widget.nextPageBuilder!(context)),
+    ];
+    return Stack(
+      children: [
+        if (controller.currentPage < pages.length)
+          pages[controller.currentPage],
+        PageView.builder(
+          controller: controller.pageController,
+          itemCount: pages.length,
+          scrollDirection: controller.config.axis,
+          pageSnapping:
+              widget.coverPageBuilder != null && controller.currentPage == 1
+                  ? true
+                  : widget.nextPageBuilder != null &&
+                          controller.currentPage - 1 == pagesTexts.length
+                      ? true
+                      : controller.config.axis == Axis.horizontal,
+          physics: const ScrollPhysics(),
+          itemBuilder: (context, index) {
+            final isCurrentPage = index == controller.currentPage;
+
+            return Opacity(
+              opacity: isCurrentPage ? 0.0 : 1.0,
+              child: pages[index],
+            );
+          },
+        ),
+      ],
+    );
   }
 }
