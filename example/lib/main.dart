@@ -60,6 +60,9 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     setCurrentChapter(chapters.entries.first, jumpToPage: 0);
+    _readerController.pageController.addListener(() {
+      setState(() {});
+    });
     super.initState();
   }
 
@@ -75,151 +78,141 @@ class _HomePageState extends State<HomePage> {
     return ValueListenableBuilder<ReaderConfig>(
         valueListenable: _readerController,
         builder: (context, config, child) {
-          return ListenableBuilder(
-              listenable: _readerController.scrollNotifier,
-              builder: (context, widget) {
-                return Scaffold(
-                  key: _globalKey,
-                  appBar: AppBar(
-                    elevation: 0,
-                    centerTitle: false,
-                    scrolledUnderElevation: 0,
-                    backgroundColor: config.backgroundColor,
-                    foregroundColor: config.foregroundColor,
-                    title: const Text("Cover Page"),
-                    actions: [
-                      Row(
-                        spacing: 16,
-                        children: [
-                          Text(
-                              "${(_readerController.rate * 100).toStringAsFixed(0)}%"),
-                          Text(
-                            "${_readerController.currentPage} / ${_readerController.totalPage}",
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  drawer: Drawer(
-                    backgroundColor: config.backgroundColor,
-                    child: ListView(
-                      children: [
-                        ...chapters.entries.map((e) => ListTile(
-                              title: Text(e.key),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                setCurrentChapter(e);
-                                _globalKey.currentState?.closeDrawer();
-                              },
-                            )),
-                      ],
+          return Scaffold(
+            key: _globalKey,
+            appBar: AppBar(
+              elevation: 0,
+              centerTitle: false,
+              scrolledUnderElevation: 0,
+              backgroundColor: config.backgroundColor,
+              foregroundColor: config.foregroundColor,
+              title: Text(currentChapter?.key ?? "Book Reader"),
+              actions: [
+                Row(
+                  spacing: 16,
+                  children: [
+                    Text(
+                        "${(_readerController.rate * 100).toStringAsFixed(0)}%"),
+                    Text(
+                      "${_readerController.currentPage} / ${_readerController.totalPage}",
                     ),
-                  ),
-                  backgroundColor: config.backgroundColor,
-                  body: SafeArea(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: () {
-                        setState(() {
-                          _isShow = !_isShow;
-                        });
-                      },
-                      child: ReaderContent(
-                        coverPageBuilder: (context) {
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text("Welcome to the Book Reader"),
-                              if (_readerController.config.axis ==
-                                  Axis.horizontal)
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    _readerController.jumpToPage(1);
-                                  },
-                                  label: const Icon(Icons.arrow_forward),
-                                  icon: Text(
+                  ],
+                ),
+              ],
+            ),
+            drawer: Drawer(
+              backgroundColor: config.backgroundColor,
+              child: ListView(
+                children: [
+                  ...chapters.entries.map((e) => ListTile(
+                        title: Text(e.key),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          setCurrentChapter(e);
+                          _globalKey.currentState?.closeDrawer();
+                        },
+                      )),
+                ],
+              ),
+            ),
+            backgroundColor: config.backgroundColor,
+            body: SafeArea(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  setState(() {
+                    _isShow = !_isShow;
+                  });
+                },
+                child: ReaderContent(
+                  coverPageBuilder: (context) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Welcome to the Book Reader"),
+                        if (config.axis == Axis.horizontal)
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              _readerController.jumpToPage(1);
+                            },
+                            label: const Icon(Icons.arrow_forward),
+                            icon: Text(
+                              "Start Reading",
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ),
+                        if (config.axis == Axis.vertical)
+                          ElevatedButton(
+                            onPressed: () {
+                              _readerController.jumpToPage(1);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  const Icon(Icons.arrow_upward),
+                                  Text(
                                     "Start Reading",
                                     style:
                                         Theme.of(context).textTheme.titleLarge,
                                   ),
-                                ),
-                              if (_readerController.config.axis ==
-                                  Axis.vertical)
-                                ElevatedButton(
-                                  onPressed: () {
-                                    _readerController.jumpToPage(1);
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: [
-                                        const Icon(Icons.arrow_upward),
-                                        Text(
-                                          "Start Reading",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleLarge,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
-                        previousPageBuilder: currentChapter?.key == "Chapter1"
-                            ? null
-                            : (context) {
-                                return Center(
-                                    child: ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content:
-                                            Text("Previous Chapter Loading..."),
-                                      ),
-                                    );
-                                    setCurrentChapter(chapters.entries
-                                        .elementAt(chapters.keys
-                                                .toList()
-                                                .indexOf(currentChapter!.key) -
-                                            1));
-                                  },
-                                  child: Text(
-                                    "Previous Chapter",
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                ));
-                              },
-                        nextPageBuilder: (context) {
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                  previousPageBuilder: currentChapter?.key == "Chapter1"
+                      ? null
+                      : (context) {
                           return Center(
                               child: ElevatedButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Next Chapter Loading..."),
+                                  content: Text("Previous Chapter Loading..."),
                                 ),
                               );
                               setCurrentChapter(chapters.entries.elementAt(
                                   chapters.keys
                                           .toList()
-                                          .indexOf(currentChapter!.key) +
+                                          .indexOf(currentChapter!.key) -
                                       1));
                             },
                             child: Text(
-                              "Next Chapter",
+                              "Previous Chapter",
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                           ));
                         },
-                        controller: _readerController,
+                  nextPageBuilder: (context) {
+                    return Center(
+                        child: ElevatedButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Next Chapter Loading..."),
+                          ),
+                        );
+                        setCurrentChapter(chapters.entries.elementAt(chapters
+                                .keys
+                                .toList()
+                                .indexOf(currentChapter!.key) +
+                            1));
+                      },
+                      child: Text(
+                        "Next Chapter",
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                    ),
-                  ),
-                  bottomSheet: buildSheet(config),
-                );
-              });
+                    ));
+                  },
+                  controller: _readerController,
+                ),
+              ),
+            ),
+            bottomSheet: buildSheet(config),
+          );
         });
   }
 
@@ -283,7 +276,7 @@ class _HomePageState extends State<HomePage> {
                   constraints:
                       const BoxConstraints(minWidth: 42, minHeight: 42),
                   icon: Icon(
-                    _readerController.config.textAlign.icon,
+                    config.textAlign.icon,
                   ),
                   itemBuilder: (c) => [
                         TextAlign.left,
@@ -336,36 +329,31 @@ class _HomePageState extends State<HomePage> {
                   icon: const Icon(Icons.format_italic_rounded)),
               IconButton(
                   onPressed: () {
-                    _readerController.setAxis(
-                        _readerController.config.axis == Axis.horizontal
-                            ? Axis.vertical
-                            : Axis.horizontal);
+                    _readerController.setAxis(config.axis == Axis.horizontal
+                        ? Axis.vertical
+                        : Axis.horizontal);
                   },
-                  icon: Icon(_readerController.config.axis == Axis.vertical
+                  icon: Icon(config.axis == Axis.vertical
                       ? Icons.vertical_distribute
                       : Icons.horizontal_distribute)),
               IconButton(
                   onPressed: () {
-                    _readerController
-                        .setFontSize(_readerController.config.fontSize - 1);
+                    _readerController.setFontSize(config.fontSize - 1);
                   },
                   icon: const Icon(Icons.text_decrease)),
               IconButton(
                   onPressed: () {
-                    _readerController
-                        .setFontSize(_readerController.config.fontSize + 1);
+                    _readerController.setFontSize(config.fontSize + 1);
                   },
                   icon: const Icon(Icons.text_increase_rounded)),
               IconButton(
                   onPressed: () {
-                    _readerController.setLineHeight(
-                        _readerController.config.lineHeight - 0.1);
+                    _readerController.setLineHeight(config.lineHeight - 0.1);
                   },
                   icon: const Icon(Icons.text_rotate_vertical_rounded)),
               IconButton(
                   onPressed: () {
-                    _readerController.setLineHeight(
-                        _readerController.config.lineHeight + 0.1);
+                    _readerController.setLineHeight(config.lineHeight + 0.1);
                   },
                   icon: const Icon(Icons.text_rotate_up_outlined)),
             ],

@@ -10,7 +10,6 @@ typedef LoadingListener = Function(bool isLoading);
 class ReaderController extends ValueNotifier<ReaderConfig> {
   SharedConfigPreference? _sharedConfigPrefrence;
 
-  ReaderConfig get config => value;
   void setConfig(ReaderConfig config) {
     value = config;
     _sharedConfigPrefrence?.save(config);
@@ -28,7 +27,9 @@ class ReaderController extends ValueNotifier<ReaderConfig> {
     _sharedConfigPrefrence = pref;
     var loadData = pref?.load();
     if (loadData != null) {
-      updateValue(pref?.load() ?? config ?? ReaderConfig());
+      updateValue(loadData);
+    } else {
+      updateValue(config ?? ReaderConfig());
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

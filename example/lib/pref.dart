@@ -10,15 +10,15 @@ class SharedConfigPrefrenceImpl extends SharedConfigPreference {
   @override
   ReaderConfig? load() {
     ReaderConfig? config;
-    // String? data = _pref.getString("ReaderConfig");
-    // if (data == null) {
-    //   return null;
-    // }
-    // try {
-    //   config = ReaderConfig.fromJson(json.decode(data));
-    // } catch (e) {
-    //   print(e);
-    // }
+    String? data = _pref.getString("ReaderConfig");
+    if (data == null) {
+      return null;
+    }
+    try {
+      config = ReaderConfig.fromJson(json.decode(data));
+    } catch (e) {
+      print(e);
+    }
     return config;
   }
 

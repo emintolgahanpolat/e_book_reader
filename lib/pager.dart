@@ -18,6 +18,7 @@ class TextPaginator {
     );
 
     String remainingText = text;
+
     while (remainingText.isNotEmpty) {
       textPainter.text = TextSpan(text: remainingText, style: textStyle);
       textPainter.layout(maxWidth: pageSize.width);
@@ -28,17 +29,22 @@ class TextPaginator {
           )
           .offset;
 
-      // Kelimeyi yarıda kesmemek için bir önceki boşluğa kadar geri git
-      while (endIndex > 0 && remainingText[endIndex - 1] != ' ') {
-        endIndex--;
-      }
-
-      if (endIndex == 0) {
+      // Eğer tüm text sayfaya sığıyorsa
+      if (endIndex >= remainingText.length) {
+        pages.add(remainingText.trim());
         break;
       }
 
-      pages.add(remainingText.substring(0, endIndex).trim());
-      remainingText = remainingText.substring(endIndex).trim();
+      // Kelimeyi ortadan bölmemek için boşluk arıyoruz
+      int lastSpace = remainingText.lastIndexOf(' ', endIndex);
+
+      // Eğer boşluk yoksa, ya çok uzun bir kelime var ya da tek kelime kalmış
+      if (lastSpace == -1 || lastSpace == 0) {
+        lastSpace = endIndex; // Mecburen tam endIndex kullan
+      }
+
+      pages.add(remainingText.substring(0, lastSpace).trim());
+      remainingText = remainingText.substring(lastSpace).trim();
     }
 
     return pages;

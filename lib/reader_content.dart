@@ -40,9 +40,11 @@ class _ReaderContentState extends State<ReaderContent> {
       child: LayoutBuilder(builder: (context, box) {
         var pagesTexts = TextPaginator(
           text: controller.text!,
-          textStyle: controller.config.textStyle,
-          pageSize: Size(box.maxWidth - (controller.config.padding.horizontal),
-              box.maxHeight - (controller.config.padding.vertical)),
+          textStyle: controller.value.textStyle,
+          pageSize: Size(
+            box.maxWidth - (controller.value.padding.horizontal * 2),
+            box.maxHeight - (controller.value.padding.vertical * 2),
+          ),
         ).paginate();
         var pages = [
           if (widget.previousPageBuilder != null)
@@ -52,60 +54,64 @@ class _ReaderContentState extends State<ReaderContent> {
             widget.coverPageBuilder!(context),
           for (var i = 0; i < pagesTexts.length; i++)
             Padding(
-              padding: controller.config.padding,
+              padding: controller.value.padding,
               child: Text(
                 pagesTexts[i],
-                textAlign: controller.config.textAlign,
-                style: controller.config.textStyle,
+                textAlign: controller.value.textAlign,
+                style: controller.value.textStyle,
               ),
             ),
           if (widget.nextPageBuilder != null) widget.nextPageBuilder!(context),
         ];
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            if (controller.currentPage < pages.length)
-              pages[controller.currentPage],
-            PageView.builder(
-              controller: controller.pageController,
-              itemCount: pages.length,
-              scrollDirection: controller.config.axis,
-              pageSnapping:
-                  widget.coverPageBuilder != null && controller.currentPage == 1
-                      ? true
-                      : widget.nextPageBuilder != null &&
-                              controller.currentPage - 1 == pagesTexts.length
-                          ? true
-                          : controller.config.axis == Axis.horizontal,
-              physics: const ClampingScrollPhysics(),
-              itemBuilder: (context, index) {
-                final isCurrentPage = index == controller.currentPage;
+        return ListenableBuilder(
+            listenable: controller.pageController,
+            builder: (context, w) {
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (controller.currentPage < pages.length)
+                    pages[controller.currentPage],
+                  PageView.builder(
+                    controller: controller.pageController,
+                    itemCount: pages.length,
+                    scrollDirection: controller.value.axis,
+                    pageSnapping: widget.coverPageBuilder != null &&
+                            controller.currentPage == 1
+                        ? true
+                        : widget.nextPageBuilder != null &&
+                                controller.currentPage - 1 == pagesTexts.length
+                            ? true
+                            : controller.value.axis == Axis.horizontal,
+                    physics: const ClampingScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final isCurrentPage = index == controller.currentPage;
 
-                return Opacity(
-                  opacity: controller.config.axis == Axis.vertical
-                      ? 1
-                      : isCurrentPage
-                          ? 0.0
-                          : 1.0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: controller.config.backgroundColor,
-                      boxShadow: [
-                        if (controller.config.axis == Axis.horizontal)
-                          const BoxShadow(
-                            color: Colors.grey,
-                            offset: Offset(0.0, 3.0),
-                            blurRadius: 6.0,
+                      return Opacity(
+                        opacity: controller.value.axis == Axis.vertical
+                            ? 1
+                            : isCurrentPage
+                                ? 0.0
+                                : 1.0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: controller.value.backgroundColor,
+                            boxShadow: [
+                              if (controller.value.axis == Axis.horizontal)
+                                const BoxShadow(
+                                  color: Colors.grey,
+                                  offset: Offset(0.0, 3.0),
+                                  blurRadius: 6.0,
+                                ),
+                            ],
                           ),
-                      ],
-                    ),
-                    child: pages[index],
+                          child: pages[index],
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ],
-        );
+                ],
+              );
+            });
       }),
     );
   }
