@@ -1,3 +1,6 @@
+## 0.0.13
+
+- Bug fixed.
 ## 0.0.12
 
 - Redesigned
