@@ -8,7 +8,11 @@ The e_book_reader package provides a versatile and customizable e-book reading i
 * Adjustable reading modes (light/dark)
 * Scroll position tracking
 * Horizontal and vertical reading layouts
-* Integrated pull-to-refresh functionality
+* Cover Page, Previous and next page
+
+<h3 align="left">Support:</h3>
+
+<p><a href="https://www.buymeacoffee.com/emintpolat"><img align="left" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="50" width="210" alt="emintolgahanpolat" /></a></p><br><br>
 
 ## Installation
 To use this package, add e_book_reader as a dependency in your pubspec.yaml file:
