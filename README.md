@@ -1,5 +1,5 @@
 # E-Book Reader
-
+![](https://raw.githubusercontent.com/emintolgahanpolat/e_book_reader/refs/heads/main/Simulator%20Screen%20Recording%20-%20iPhone%2016%20-%202025-04-12%20at%2001.25.38.gif)
 ## Overview
 The e_book_reader package provides a versatile and customizable e-book reading interface for Flutter applications. It supports features such as page scrolling, content loading, pull-to-refresh, and extensive customization options for the reading experience.
 
